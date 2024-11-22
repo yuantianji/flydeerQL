@@ -1,6 +1,7 @@
-/*
+'''
+new Env('联通商店商品监听');
 0 8 * * * UnicomStore.py 
-*/
+'''
 
 import requests
 import time
