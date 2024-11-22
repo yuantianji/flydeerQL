@@ -1,4 +1,7 @@
 #!/bin/bash
+#0 0 * * 0 cleanLog.sh
+#new Env('清理日志');
+
 echo "开始清理日志"
 pwd
 # ls ../log
