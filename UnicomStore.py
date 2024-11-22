@@ -42,6 +42,23 @@ def send_requests_with_multiple_params(goodsIds):
 
     return responses
 
+
+def chack_id(goodsId):
+    base_url = f"https://card.10010.com/mall-order/terminalModel/goodsInfo/v1?goodsId={goodsId}&provinceCode="
+    try:
+        response = requests.get(base_url)
+        response.raise_for_status()  # 如果响应状态码不是200，将抛出异常
+    except requests.exceptions.HTTPError as errh:
+        print(f"HTTP错误: {errh}")
+    except requests.exceptions.ConnectionError as errc:
+        print(f"连接错误: {errc}")
+    except requests.exceptions.Timeout as errt:
+        print(f"超时错误: {errt}")
+    except requests.exceptions.RequestException as err:
+        print(f"请求错误: {err}")
+    return response
+
+
 # 使用示例
 if __name__ == "__main__":
     while True:
@@ -69,11 +86,21 @@ if __name__ == "__main__":
                         else:
                             if data['articleAmount'] > 1:
                                 print(data['MODEL_DESC'] + ',当前库存为:' + str(data['articleAmount']))
-                                notify += '{}-{}，当前库存为:{}   <a href="https://card.10010.com/terminal/hs?goodsId={}">点击购买</a>\n'.format(data['MODEL_DESC'], data.get('COLOR_DESC', ''), data['articleAmount'], goodsIds[i])
+                                res = chack_id(goodsIds[i])
+                                d = res.json()
+                                if d['code'] == '9009':
+                                   print(data['MODEL_DESC'] + ' 已经下架') 
+                                else:
+                                    notify += '{}-{}，当前库存为:{}   <a href="https://card.10010.com/terminal/hs?goodsId={}">点击购买</a>\n'.format(data['MODEL_DESC'], data.get('COLOR_DESC', ''), data['articleAmount'], goodsIds[i])
                                 # pushplus_bot("联通商场有货通知", data['MODEL_DESC'] + ',当前库存为:' + str(data['articleAmount']))
                             elif data['articleAmountNew'] > 1:
                                 print(data['MODEL_DESC']  + '-' + data['COLOR_DESC'] + ',当前库存为:' + str(data['articleAmountNew']))
-                                notify += '{}-{}，当前库存为:{}   <a href="https://card.10010.com/terminal/hs?goodsId={}">点击购买</a>\n'.format(data['MODEL_DESC'], data.get('COLOR_DESC', ''), data['articleAmountNew'], goodsIds[i])
+                                res = chack_id(goodsIds[i])
+                                d = res.json()
+                                if d['code'] == '9009':
+                                   print(data['MODEL_DESC'] + ' 已经下架') 
+                                else:
+                                    notify += '{}-{}，当前库存为:{}   <a href="https://card.10010.com/terminal/hs?goodsId={}">点击购买</a>\n'.format(data['MODEL_DESC'], data.get('COLOR_DESC', ''), data['articleAmountNew'], goodsIds[i])
                                 # pushplus_bot("联通商场有货通知", data['MODEL_DESC'] + ',当前库存为:' + str(data['articleAmountNew']))
                             else:
                                 print(data['MODEL_DESC'] + ',当前库存为:' + str(data['articleAmount']))
