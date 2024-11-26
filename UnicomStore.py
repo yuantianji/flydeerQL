@@ -91,7 +91,7 @@ if __name__ == "__main__":
                                 if d['code'] == '9009':
                                    print(data['MODEL_DESC'] + ' 已经下架') 
                                 else:
-                                    notify += '{}-{}，当前库存为:{}   <a href="https://card.10010.com/terminal/hs?goodsId={}">点击购买</a>\n'.format(data['MODEL_DESC'], data.get('COLOR_DESC', ''), data['articleAmount'], goodsIds[i])
+                                    notify += '{}-{}，当前库存为:{} \n 点击购买: https://card.10010.com/terminal/hs?goodsId={}"\n'.format(data['MODEL_DESC'], data.get('COLOR_DESC', ''), data['articleAmount'], goodsIds[i])
                                 # pushplus_bot("联通商场有货通知", data['MODEL_DESC'] + ',当前库存为:' + str(data['articleAmount']))
                             elif data['articleAmountNew'] > 1:
                                 print(data['MODEL_DESC']  + '-' + data['COLOR_DESC'] + ',当前库存为:' + str(data['articleAmountNew']))
@@ -100,7 +100,7 @@ if __name__ == "__main__":
                                 if d['code'] == '9009':
                                    print(data['MODEL_DESC'] + ' 已经下架') 
                                 else:
-                                    notify += '{}-{}，当前库存为:{}   <a href="https://card.10010.com/terminal/hs?goodsId={}">点击购买</a>\n'.format(data['MODEL_DESC'], data.get('COLOR_DESC', ''), data['articleAmountNew'], goodsIds[i])
+                                    notify += '{}-{}，当前库存为:{} \n 点击购买: https://card.10010.com/terminal/hs?goodsId={}"\n'.format(data['MODEL_DESC'], data.get('COLOR_DESC', ''), data['articleAmountNew'], goodsIds[i])
                                 # pushplus_bot("联通商场有货通知", data['MODEL_DESC'] + ',当前库存为:' + str(data['articleAmountNew']))
                             else:
                                 print(data['MODEL_DESC'] + ',当前库存为:' + str(data['articleAmount']))
