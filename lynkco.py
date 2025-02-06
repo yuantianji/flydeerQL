@@ -1,9 +1,15 @@
+'''
+new Env('领克APP每日任务');
+0 8 * * * lynkco.py 
+'''
+
 import random
 import hmac
 import hashlib
 import base64
 import time
 import requests
+
 
 app_secret = 'OTc1NTY3NjUxNDg4RjUzQ0UzMTUxRERDN0I5QzJBNDBEOTQ0MzlBNEE2RjVENEI5NzA4N0UxRTJDMDIxQzE3NUU3Q0REQkQzNzhDMUVCNjQ5NjQ0MzFBODAwOEMwNjdF'
 token = os.getenv("lc_cookie","")
