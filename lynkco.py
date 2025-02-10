@@ -10,6 +10,7 @@ import base64
 import time
 import requests
 import os
+from sendNotify import wecom_key
 
 app_secret = 'QCl7udM3PB9cOIOwquwPglikFQnzJRsX'
 token = os.getenv("lc_token","")
@@ -196,4 +197,5 @@ if __name__ == "__main__":
   share()
   time.sleep(1)
   getPointBalance()
-  print(notify)
+  if notify:
+      wecom_key("领克日常任务",notify)
