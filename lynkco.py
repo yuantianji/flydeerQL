@@ -160,12 +160,12 @@ def send_request2(uri, method, data=None):
 
     return None
 
-notify = ""
+notify = "========================================\n"
 
 def sign():
   response = send_request("/up/api/v1/user/sign", "POST", "204644386")
   global notify
-  notify = notify + "签到:" + response['message'] + '\r\n'
+  notify = notify + "签到:" + response['message'] + '\n'
   print("========================================")
   
 def share():
@@ -177,7 +177,7 @@ def share():
 def shareReporting(shareCode):
   response = send_request2(f"/app/v1/task/shareReporting?shareCode={shareCode}", "POST", {"businessNo":"1881101031748870144","eventData":{"firstClassification":"文章","secondClassification":""}})
   global notify
-  notify = notify + "分享:" + response['data'] + '\r\n'
+  notify = notify + "分享:" + response['data'] + '\n'
   print("========================================") 
 
 def refreshToken():
@@ -188,7 +188,7 @@ def refreshToken():
 def getPointBalance():
   response = send_request("/app/v2/user/manage/all/count", "GET", "204644386")
   global notify
-  notify = notify + "Co积分:" + response['data']['pointBalance'] + '\r\n' + "能量体:" + str(response['data']['growth']) + '\r\n'
+  notify = notify + "Co积分:" + response['data']['pointBalance'] + '\n' + "能量体:" + str(response['data']['growth']) + '\n'
   print("========================================")
 
 if __name__ == "__main__":
