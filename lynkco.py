@@ -9,10 +9,12 @@ import hashlib
 import base64
 import time
 import requests
+import os
 
-
-app_secret = 'OTc1NTY3NjUxNDg4RjUzQ0UzMTUxRERDN0I5QzJBNDBEOTQ0MzlBNEE2RjVENEI5NzA4N0UxRTJDMDIxQzE3NUU3Q0REQkQzNzhDMUVCNjQ5NjQ0MzFBODAwOEMwNjdF'
-token = os.getenv("lc_cookie","")
+app_secret = 'QCl7udM3PB9cOIOwquwPglikFQnzJRsX'
+token = os.getenv("lc_token","")
+token2 = os.getenv("lc_token2","")
+refreshToken = os.getenv("lc_refreshToken","")
 
 def generate_x_ca_nonce():
     """
@@ -33,7 +35,7 @@ def generate_x_ca_nonce():
 
     return nonce
 
-def send_request(method, uri, x_ca_key, data=None):
+def send_request(uri, method, x_ca_key, data=None, headers_data=None):
     """
     发送HTTP请求函数
 
@@ -48,49 +50,150 @@ def send_request(method, uri, x_ca_key, data=None):
     # 生成X-Ca-Timestamp
     x_ca_timestamp = str(int(time.time() * 1000))
     # 构造签名字符串
-    string_to_sign = f"{method}#*/*##application/json##X-Ca-Key:{x_ca_key}#X-Ca-Nonce:{x_ca_nonce}#X-Ca-Signature-Method:HmacSHA256#X-Ca-Timestamp:{x_ca_timestamp}#{uri}"
-
+    string_to_sign = (
+        f"{method}\n"
+        f"*/*\n\n"
+        f"application/json\n\n"
+        f"X-Ca-Key:{x_ca_key}\n"
+        f"X-Ca-Nonce:{x_ca_nonce}\n"
+        f"X-Ca-Signature-Method:HmacSHA256\n"
+        f"X-Ca-Timestamp:{x_ca_timestamp}\n"
+        f"{uri}"
+    )
     # 使用HmacSHA256生成签名
     signature = hmac.new(app_secret.encode(), string_to_sign.encode(), hashlib.sha256).digest()
     signature_base64 = base64.b64encode(signature).decode()
-
     # 构造请求头
     headers = {
+        "Appsecret": "OTc1NTY3NjUxNDg4RjUzQ0UzMTUxRERDN0I5QzJBNDBEOTQ0MzlBNEE2RjVENEI5NzA4N0UxRTJDMDIxQzE3NUU3Q0REQkQzNzhDMUVCNjQ5NjQ0MzFBODAwOEMwNjdF",
+        "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1 Edg/128.0.0.0",
         "X-Ca-Key": x_ca_key,
         "X-Ca-Nonce": x_ca_nonce,
         "X-Ca-Timestamp": x_ca_timestamp,
         "X-Ca-Signature": signature_base64,
         "X-Ca-Signature-Method": "HmacSHA256",
-        "X-Ca-Signature-Headers": "X-Ca-Key,X-Ca-Timestamp,X-Ca-Nonce,X-Ca-Signature-Method"
+        "X-Ca-Signature-Headers": "X-Ca-Key,X-Ca-Timestamp,X-Ca-Nonce,X-Ca-Signature-Method",
         "Content-Type": "application/json",
-        "APPSECRET": app_secret,
         "Token": token
+    }
+    if headers_data != None:
+        headers[headers_data['head']] = headers_data['data']
+
+    # 构造请求URL
+    url = f"https://h5-api.lynkco.com{uri}"  # 替换为实际的API域名
+
+    # 发送请求
+    try:
+        if method.upper() == "POST":
+            response = requests.post(url, headers=headers, json=data)
+        elif method.upper() == "GET":
+            if data != None:
+                response = requests.get(f"{url}?{data}", headers=headers)
+            else:
+                response = requests.get(url, headers=headers)
+        else:
+            raise ValueError("Unsupported HTTP method")
+
+        # 打印响应状态码和内容
+        if response.status_code != 200:
+            print("Response Status Code:", response.status_code)
+            print("Response Headers:", response.headers)
+            print("Response Content:", response.text)
+
+        # 尝试解析JSON
+        try:
+            response_json = response.json()
+            print("Response JSON:", response_json)
+            return response_json
+        except ValueError as e:
+            print("Response is not JSON:", e)
+
+    except requests.exceptions.RequestException as e:
+        print("Request failed:", e)
+
+    return None
+
+def send_request2(uri, method, data=None):
+    """
+    发送HTTP请求函数
+
+    :param uri: 请求路径
+    :param method: 请求方法（如POST、GET等）
+    :param data: 请求正文（可选，默认为None）
+    :return: HTTP响应对象
+    """
+    # 构造请求头
+    headers = {
+        "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1 Edg/128.0.0.0",
+        "Content-Type": "application/json"
     }
 
     # 构造请求URL
-    url = f"{uri}"  # 替换为实际的API域名
+    url = f"https://h5.lynkco.com{uri}"  # 替换为实际的API域名
 
     # 发送请求
-    if method.upper() == "POST":
-        response = requests.post(url, headers=headers, json=data)
-    elif method.upper() == "GET":
-        response = requests.get(url, headers=headers)
-    else:
-        raise ValueError("Unsupported HTTP method")
+    try:
+        if method.upper() == "POST":
+            response = requests.post(url, headers=headers, json=data)
+        elif method.upper() == "GET":
+            response = requests.get(url, headers=headers)
+        else:
+            raise ValueError("Unsupported HTTP method")
 
-    return response
+        # 打印响应状态码和内容
+        if response.status_code != 200:
+            print("Response Status Code:", response.status_code)
+            print("Response Headers:", response.headers)
+            print("Response Content:", response.text)
+
+        # 尝试解析JSON
+        try:
+            response_json = response.json()
+            print("Response JSON:", response_json)
+            return response_json
+        except ValueError as e:
+            print("Response is not JSON:", e)
+
+    except requests.exceptions.RequestException as e:
+        print("Request failed:", e)
+
+    return None
+
+notify = ""
 
 def sign():
-  response = send_request("https://h5-api.lynkco.com/up/api/v1/user/sign", "POST", "204644386")
-  print("Response Status Code:", response.status_code)
-  print("Response Content:", response.json())
+  response = send_request("/up/api/v1/user/sign", "POST", "204644386")
+  global notify
+  notify = notify + "签到:" + response['message'] + '\r\n'
   print("========================================")
   
 def share():
-  response = send_request("https://app-services.lynkco.com.cn/app/v1/task/getShareCode", "GET", "203760416")
-  print("Response Status Code:", response.status_code)
-  print("Response Content:", response.json())
+  response = send_request("/app/v1/task/getShareCode", "GET", "204644386",None,{"head":"risk_request_info","data":'{"openTimeStamp":"2025-02-07 15:29:24","shareContentType":1,"shareContentURL":"https://h5.lynkco.com/app-h5/dist/web/pages/exploration/article/index.html?id=1881101031748870144"}'})
+  shareCode = response['data']
   print("========================================") 
+  shareReporting(shareCode)
   
+def shareReporting(shareCode):
+  response = send_request2(f"/app/v1/task/shareReporting?shareCode={shareCode}", "POST", {"businessNo":"1881101031748870144","eventData":{"firstClassification":"文章","secondClassification":""}})
+  global notify
+  notify = notify + "分享:" + response['data'] + '\r\n'
+  print("========================================") 
+
+def refreshToken():
+  token = token2
+  response = send_request(f"/auth/login/refresh?deviceId&deviceType=Web&refreshToken={refreshToken}", "GET", "204644386")
+  print("========================================") 
+
+def getPointBalance():
+  response = send_request("/app/v2/user/manage/all/count", "GET", "204644386")
+  global notify
+  notify = notify + "Co积分:" + response['data']['pointBalance'] + '\r\n' + "能量体:" + str(response['data']['growth']) + '\r\n'
+  print("========================================")
+
 if __name__ == "__main__":
+  sign()
+  time.sleep(1)
   share()
+  time.sleep(1)
+  getPointBalance()
+  print(notify)
