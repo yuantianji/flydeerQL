@@ -14,7 +14,6 @@ from sendNotify import wecom_key
 
 app_secret = 'QCl7udM3PB9cOIOwquwPglikFQnzJRsX'
 token = os.getenv("lc_token","")
-token2 = os.getenv("lc_token2","")
 refreshToken = os.getenv("lc_refreshToken","")
 
 def generate_x_ca_nonce():
@@ -66,8 +65,7 @@ def send_request(uri, method, x_ca_key, data=None, headers_data=None):
     signature_base64 = base64.b64encode(signature).decode()
     # 构造请求头
     headers = {
-        "Appsecret": "OTc1NTY3NjUxNDg4RjUzQ0UzMTUxRERDN0I5QzJBNDBEOTQ0MzlBNEE2RjVENEI5NzA4N0UxRTJDMDIxQzE3NUU3Q0REQkQzNzhDMUVCNjQ5NjQ0MzFBODAwOEMwNjdF",
-        "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1 Edg/128.0.0.0",
+        "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_6_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 x-cordova-platform/ios cordova-6",
         "X-Ca-Key": x_ca_key,
         "X-Ca-Nonce": x_ca_nonce,
         "X-Ca-Timestamp": x_ca_timestamp,
@@ -75,7 +73,7 @@ def send_request(uri, method, x_ca_key, data=None, headers_data=None):
         "X-Ca-Signature-Method": "HmacSHA256",
         "X-Ca-Signature-Headers": "X-Ca-Key,X-Ca-Timestamp,X-Ca-Nonce,X-Ca-Signature-Method",
         "Content-Type": "application/json",
-        "Token": token
+        "token": token
     }
     if headers_data != None:
         headers[headers_data['head']] = headers_data['data']
@@ -181,14 +179,13 @@ def shareReporting(shareCode):
   print("========================================") 
 
 def refreshToken():
-  token = token2
   response = send_request(f"/auth/login/refresh?deviceId&deviceType=Web&refreshToken={refreshToken}", "GET", "204644386")
   print("========================================") 
 
 def getPointBalance():
-  response = send_request("/app/v2/user/manage/all/count", "GET", "204644386")
+  response = send_request("/app/energy/myEnergy", "GET", "204644386")
   global notify
-  notify = notify + "Co积分:" + response['data']['pointBalance'] + '\n' + "能量体:" + str(response['data']['growth']) + '\n'
+  notify = notify + "Co积分:" + response['data']['point'] + '\n' + "过期Co积分:" + response['data']['expirePoint'] + '\n' + "能量体:" + str(response['data']['incomePoint']) + '\n'
   print("========================================")
 
 if __name__ == "__main__":
