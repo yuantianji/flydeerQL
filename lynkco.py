@@ -10,11 +10,15 @@ import base64
 import time
 import requests
 import os
+from json import dumps as jsonDumps
 from sendNotify import wecom_key
 
 app_secret = 'QCl7udM3PB9cOIOwquwPglikFQnzJRsX'
 token = os.getenv("lc_token","")
-refreshToken = os.getenv("lc_refreshToken","")
+refresh_Token = os.getenv("lc_refreshToken","")
+address = os.getenv("ql_address","")
+client_id = os.getenv("ql_client_id","")
+client_secret = os.getenv("ql_client_secret","")
 
 def generate_x_ca_nonce():
     """
@@ -179,7 +183,24 @@ def shareReporting(shareCode):
   print("========================================") 
 
 def refreshToken():
-  response = send_request(f"/auth/login/refresh?deviceId&deviceType=Web&refreshToken={refreshToken}", "GET", "204644386")
+  global token
+  global refresh_Token
+  response = send_request(f"/auth/login/refresh?deviceId&deviceType=Web&refreshToken={refresh_Token}", "GET", "204644386")
+  if response['code'] == 'success':
+      token = response['data']['centerTokenDto']['token']
+      refresh_Token = response['data']['centerTokenDto']['refreshToken']
+  auth = login()
+  if auth != None:
+    updateEnv(auth,{"id":6,"name":"lc_token","value":token})
+    updateEnv(auth,{"id":8,"name":"lc_refreshToken","value":refresh_Token})
+  
+  sign()
+  time.sleep(1)
+  share()
+  time.sleep(1)
+  getPointBalance()
+  if notify:
+      wecom_key("领克日常任务",notify)
   print("========================================") 
 
 def getPointBalance():
@@ -188,11 +209,39 @@ def getPointBalance():
   notify = notify + "Co积分:" + response['data']['point'] + '\n' + "过期Co积分:" + response['data']['expirePoint'] + '\n' + "能量体:" + str(response['data']['incomePoint']) + '\n'
   print("========================================")
 
+
+def login() -> None:
+    """
+    登录
+    """
+    url = f"{address}/open/auth/token?client_id={client_id}&client_secret={client_secret}"
+    try:
+        rjson = requests.get(url).json()
+        if(rjson['code'] == 200):
+            return f"{rjson['data']['token_type']} {rjson['data']['token']}"
+        else:
+            print(f"登录失败：{rjson['message']}")
+            return None
+    except Exception as e:
+        print(e)
+
+def updateEnv(auth, env: dict) -> bool:
+    """
+    更新环境变量
+    """
+    url = f"{address}/open/envs"
+    headers = {"Authorization": auth,"content-type": "application/json"}
+    try:
+        rjson = requests.put(url, headers=headers, data=jsonDumps(env)).json()
+        if(rjson['code'] == 200):
+            print(f"更新环境变量成功")
+            return True
+        else:
+            print(f"更新环境变量失败：{rjson}")
+            return False
+    except Exception as e:
+        print(f"更新环境变量失败2：{str(e)}")
+        return False
+
 if __name__ == "__main__":
-  sign()
-  time.sleep(1)
-  share()
-  time.sleep(1)
-  getPointBalance()
-  if notify:
-      wecom_key("领克日常任务",notify)
+  refreshToken()
